@@ -1,0 +1,48 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-metrics-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: prometheus-metrics-app
+  template:
+    metadata:
+      labels:
+        app: prometheus-metrics-app
+    spec:
+      containers:
+      - name: prometheus-metrics-app
+        image: quay.io/casek14/prometheus-example-app:v1.0.0
+        ports:
+        - name: metrics
+          containerPort: 8080
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: prometheus-metrics-app-svc
+  labels:
+    app: prometheus-metrics-app-svc
+spec:
+  selector:
+    app: prometheus-metrics-app
+  ports:
+  - name: metrics
+    port: 8080
+  type: NodePort
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: prometheus-metrics-app
+spec:
+  endpoints:
+  - interval: 15s
+    port: metrics
+  selector:
+    matchLabels:
+      app: prometheus-metrics-app-svc
+
